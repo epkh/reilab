@@ -84,7 +84,7 @@ Before we start using Python, we're going to install a platform that will allow 
 
 Python is a valuable scripting language for data analysis and management (and more!); however managing a Python project environment can be nuanced and tricky. Anaconda is a platform built to complement Python by creating customizable and easily accessible environments in which you can run Python scripts. For more info on Anaconda, check out the [Anaconda homepage](https://www.continuum.io/why-anaconda).
 
-***Note: you may prefer to use `virtualenv` instead of Anaconda. If you prefer to use that, there are brief instructions on how to do that below the Anaconda instructions.***
+***Note: Anaconda is by no means the only way to run a virtual environment. If you prefer to use `pip` to install and manage packages and `virtualenv` to run your virtual environments, that is a common alternative.***
 
 ### Why Use a Virtual Environment?
 
@@ -159,74 +159,3 @@ atom ./
 ## Run a script from within Atom
 
 Open the the `first-script.py` script in Atom. Select the first line and type shift-enter. You'll see a checkmark appear next to the line and your cursor will have progressed to the next line. The checkmark tells you that the line executed successfully. In this case, that means a variable called `msg` is now stored in memory. Type shift-enter again. You should see "Python is printing me!" appear next to the print function. This is how Hydrogen displays console output. We can now run not only full scripts, but 'chunks' of code. This will allow us significantly more flexibility as we develop our own scripts.
-
-
-
-
-
-
-
-
-
-
-
-
-[UPDATE TO REFLECT NON BDVS AND JUST BE A BASIC TUTORIAL ON VIRTUALENV]
-
-### An Alternative to Anaconda
-
-An alternative way to manage your virtual environments uses the `virtualenv` package for Python (which you can install using the `pip` package manager).
-
-#### Installing `virtualenv` using `pip`
-
-Install the virtual environment library using `pip`. `pip` is a package management system that allows you to easily install and maintain python libraries using a simple command line interface. If you're on a Mac with a Python distribution, you'll probably be able to run `pip` or `pip3` from your command line with no problems. On Windows, it's a bit trickier (as usual) and so Anaconda might be the choice for you.
-
-#### Installing `pip` on Windows
-
-Go to [the pip webpage](https://pip.pypa.io/en/stable/installing/#installing-with-get-pip-py) and download `get-pip.py`. Change your directory to the location to which you downloaded the `get-pip` script, and execute the following command:
-
-```sh
-python get-pip.py
-```
-
-This will install `pip` on your system. Close your command line windows and reopen them. You should then be able to execute pip; type `pip -V` to see which version you have installed. Much like with Python, if you have installations of both Python 2 and Python 3 on the same machine, you'll have to use the `pip3` command to install Python 3 packages.
-
-### Install
-
-We installed Hydrogen above, which will allow you to run Python scripts from within Atom. However, if you try to do this now, you're likely to be in trouble; we have yet to install a **kernel**. Basically, a kernel is a program that runs your code. One very common kernel is `ipython`, which we can install using `pip` in the same way that we installed `virtualenv` above. The only difference is that we're now working within a virtual environment, meaning that any packages you install will be installed in the virtual environment, rather than in your global Python packages.
-
-```sh
-# Remember that you may need to use pip3
-pip install ipython
-```
-
-### Install `virtualenv`
-
-Now we're going to install `virtualenv` using `pip`.
-
-```sh
-# if you have only Python 3.x installed
-pip install virtualenv
-# If you have both Python 2.x and Python 3.x installed
-pip3 install virtualenv
-```
-
-Wow! That was easy. And that, my friends, is why we use package managers.
-
-### Creating a New Virtual Environment
-
-Once we've installed `virtualenv`, we can create a new virtual environment using only a few commands.
-
-```sh
-mkdir ~/.venvs
-virtualenv --system-site-packages ~/.venvs/bdvs
-
-# On Mac or Linux...
-. ~/.venvs/bdvs/bin/activate
-# On Windows...
-. ~/.venvs/bdvs/Scripts/activate
-```
-
-First we create a new folder to hold our virtual environments. Next, we create a new virtual environment in the `bdvs` subfolder of our new `.venvs` subdirectory. We're also telling `virtualenv` that we want this environment to inherit its packages from the Python system installation (this is the role of the `--system-site packages` option). Finally, we activate the virtual environment using the `.` operator, which tells the shell to source from a provided path.
-
-Cool! You're now running Python in a virtual environment! You should see (bdvs) before the prompt in Terminal or Git Bash.
