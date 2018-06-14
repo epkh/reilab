@@ -1,15 +1,15 @@
 # Python Basics
 
-Here we will walk through some of the basics of Python, including...
+Here we will walk through some of the basics of Python, including:
 + Python Libraries, Commenting, Variables
 + Python Datatypes and Structures
-+ How Python thinks: With objects!
++ How Python Thinks (Methods vs. Functions)
 + Control Flow
 + Functions
 + `numpy` Arrays
 
 ###### Note
-This is very closely drawn (and sometimes directly taken) from the MIT Big Data, Visualization, and Society class' Python Intro [linked here](UPDATE).
+This is very closely drawn (and sometimes directly taken) from the MIT Big Data, Visualization, and Society class' Python Intro [linked here](https://github.com/ericmhuntley/big-data-spring2018/blob/master/week-02/WS01_Python-Intro.md).
 
 ## Getting Started
 
@@ -18,7 +18,7 @@ This is very closely drawn (and sometimes directly taken) from the MIT Big Data,
 Remember to start each Python session by activating your virtual environment. In your command line window, activate your virtual environment by running a single command:
 
 ```sh
-source activate VIRTUAL ENVIRONMENT NAME
+source activate [insert VIRTUAL ENVIRONMENT NAME]
 ```
 
 Once you've executed this command, you should see `(VIRTUAL ENVIRONMENT NAME)` at the front of the line in your command line terminal. This means that you're working in your virtual environment!
@@ -306,7 +306,7 @@ print(range(4, 10, 2))
 print(len(range(10)))
 ```
 
-#### List comprehension
+#### List Comprehension
 
 Lists can also be constructed differently using an approach called 'list comprehension'. Basically, a provided operation is applied to each element in a list. This is very, *very* useful in cases where you want to generate a new list that is the result of applying a function or functions to elements of a list. Without list comprehension, the syntax would be far more verbose. For example, let's say we want to create a list that is the result of squaring each integer from 0 to 4.
 
