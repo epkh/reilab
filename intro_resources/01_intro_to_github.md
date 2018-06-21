@@ -89,9 +89,7 @@ This will create a folder called 'github' on your Desktop. The tilde character f
 Now that you've created a folder to store your Github projects, you'll want to change your working directory to that new folder. You can c-hange your d-irectory with the `cd` command and tell the terminal to p-rint your w-orking d-rectory using the `pwd` command.
 
 ```sh
-pwd
 cd ~/Desktop/github
-pwd
 ```
 
 The above commands should print your working directory before and after changing it. The ‘github’ folder is now your working directory and commands we run will be happening in this directory. We will work locally on our Github repositories in this space.
@@ -103,6 +101,12 @@ For documentation on additional command line commands and shortcuts, [this cheat
 Create a clone of the website repository on your machine so you can edit code and files. This will allow for pulling, merging, and pushing changes you make to your files.
 
 To access Github commands in the terminal, use the term `git` to begin your statement---this calls the Git command line utility. We can download our Github pages repository using the `git clone` command. Go to your GitHub repo online and click on `clone or download` and copy the link that pops up. Then, in your command line, type:
+
+```sh
+git clone [**insert copied link here**]
+```
+
+For our purposes (and for the success of the rest of this tutorial!), please start by forking the `reilab` repo. Go this page (https://github.com/epkh/reilab) and click on the `Fork` icon in the top right corner of the page. This will make a copy of the `reilab` repo to your own GitHub account. Then go to your GitHub profile and look at your list of repos; you should see one there called `reilab`! Click on it. Then, as we described above, click on `clone or download` and copy the link that pops up. Then, in your command line, type:
 
 ```sh
 git clone [**insert copied link here**]
