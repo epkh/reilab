@@ -3,7 +3,7 @@
 Here we will walk through Pandas, an incredibly useful Python library for data cleaning and analysis.
 
 ###### Note
-This is very closely drawn (and sometimes directly taken) from the MIT Big Data, Visualization, and Society class' Pandas Intro [linked here](https://github.com/ericmhuntley/big-data-spring2018/blob/master/week-03/WS02_pandas_intro.md).
+Parts of this is very closely drawn (and sometimes directly taken) from the MIT Big Data, Visualization, and Society class' Pandas Intro [linked here](https://github.com/ericmhuntley/big-data-spring2018/blob/master/week-03/WS02_pandas_intro.md).
 
 ## What is Pandas?
 
@@ -23,6 +23,9 @@ Now, we need to make sure the libraries are imported. If you're seeing an error 
 ```python
 import pandas as pd
 import numpy as np
+
+# you can run this to check which version of pandas you're running
+pd.__version__
 ```
 
 (Note: Here we use the `as` option to allow us to invoke the library with fewer keystrokes.)
@@ -219,7 +222,6 @@ There is a single complaint row that contains the maximum number of calls. This 
 ComplaintCount[ComplaintCount == ComplaintCount.min()]
 ```
 
-##### More to be added here on cleaning data in Pandas and exporting data from Pandas. Check back later for updates!
 
 ## Cleaning
 
@@ -312,6 +314,7 @@ Since we only have 32 columns we can see easily that there are four columns with
 + 'ClosedDate'
 + 'DueDate'
 + 'ResolutionActionUpdatedDate'
+
 However, if we had many more columns and couldn't easily see this, we could use a regular expression (regex) to easily filter our columns for any that have the word, date, in them. Regex can be very powerful (and fast!) but we won't go into them here. To learn more about them and the specific syntax, see [here](https://docs.python.org/3.3/howto/regex.html#regex-howto) and [here](http://doc.pyschools.com/html/regex.html).
 
 ```Python
@@ -333,11 +336,12 @@ df_cleaner.dtypes
 # look at our oldest and newest entries, which is only possible now that we're in datetime format
 df_cleaner['CreatedDate_dt'].max()
 df_cleaner['CreatedDate_dt'].min()
-
 ```
 Now, let's make a column that is just the date and not the time. This can be useful if we want to look at 311 pings within a given day. Let's also make a column that shows the day of the week and not just the date. This can help us tease out any trends in 311 pings by weekday. Fortunately, Pandas has some built-in functions to do these! We start by using `.dt.normalize()` to select out the date from the full datetime but keep the date in datetime format. Info on this can be [found here](http://pandas.pydata.org/pandas-docs/version/0.23/generated/pandas.Series.dt.normalize.html).
 
-Then, we use...
+Then, we use a new pandas function `.dt.day_name()` to convert the date to the name of a weekday. (Note: this will not work if you are running an older version of pandas.) Basically, it uses an internal calendar to determine which day a given calendar date lands on. See [here](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.Series.dt.day_name.html) for the documentation on the new `.dt.day_name()`.
+
+Note: if you would rather have a number indicating the day of the week instead of the name, you can use `.dt.weekday` which will, by convention, return a numeric value according to a week that runs from 0 to 6 where 0 is Monday and 6 is Sunday. See [here](http://pandas.pydata.org/pandas-docs/version/0.23/generated/pandas.Series.dt.weekday.html) for documentation.
 
 ```python
 # first, we make a new column that just includes the date
@@ -346,23 +350,12 @@ df_cleaner['CreatedDate_day'] = df_cleaner['CreatedDate_dt'].dt.normalize()
 df_cleaner['CreatedDate_day'].head()
 
 #next, let's create a column for the name of the day of the week
-weekday = df_cleaner['CreatedDate_day'].dt.weekday
-weekday.head()
-weekdayname = df_cleaner['CreatedDate_dt'].dt.day_name
-pd.__version__
+df_cleaner['CreatedDate_dayname'] = df_cleaner['CreatedDate_dt'].dt.day_name()
+df_cleaner['CreatedDate_dayname'].head()
 ```
 
-[REFERENCE]
-Once we've created a new column, we can create another column which uses an internal calendar to determine which day a given calendar date lands on. The one quirk here is that, by convention, the `weekday` function returns a numeric value according to a week that runs from 0 to 6 where 0 is Monday. Our 0 hour is midnight on Sunday, so we'll need to make our weekday number match our `hours` column. We do this using the `.apply() method`.
+## Exporting data
 
-```python
-df['weekday'] = df['date_new'].apply(lambda x: x.weekday() + 1)
-df['weekday'].replace(7, 0, inplace = True)
-```
-
-`lambda` sounds complicated, but really isn't. It allows us to define a function on the fly---here we're saying "do the following for every row: identify a weekday and add one to the returned value." This results in a range from 1-7 and we still want it to range from 0 to 6, so we replace 7 with 0 using the built-in Pandas `.replace` method.
-
-## Exporting your data
 The last step is to export your cleaned data so you can use it in other ways, or just to store it for your records. There are many formats that you can export data in from Pandas. See [here](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.to_csv.html#pandas.DataFrame.to_csv) for the `to_csv` documentation and [here](https://pandas.pydata.org/pandas-docs/stable/api.html#id12) for information on all the formats that you can export with Pandas.  
 
 You'll notice that the statement below looks very similar to the way we read data into Pandas. Just like when we read data in, you may need to change Python's working directory so that your data is saved in the right folder. Here, we want to save it in the `data` folder.
@@ -375,16 +368,58 @@ df_cleaner.to_csv('data/NYC311_3zips_clean.csv')
 ```
 
 
-## Looking at our data
+## Visualizing data
 
-We can now create some basic charts using the fabulous matplotlib.
+We can now create some basic charts using the fabulous [matplotlib](https://matplotlib.org/), which is a very powerful graph and chart-making library for python. Many other visualization libraries are built on top of matplotlib, such as seaborn(https://seaborn.pydata.org/). Other popular data visualization libraries for python include some interactive ones like [Bokeh](https://bokeh.pydata.org/en/latest/), [Pygal](http://pygal.org/en/stable/) and [plotly](https://plot.ly/). There is also a python version of the popular R plotting package (ggplot2) called [ggplot](http://ggplot.yhathq.com/).
 
 ```python
 # This line lets us plot in Atom
 import matplotlib
 # This line allows the results of plots to be displayed inline with our code.
 %matplotlib inline
-
-##day_hours = df[df['date'] == '2017-07-02'].groupby('hour')['count'].sum()
-##day_hours.plot()
 ```
+There are few ways to make charts using matplotlib and pandas; one is embedding matplotlib into pandas and the other just uses matplotlib. We will do the former here, and more can be learned [here in the Pandas documentation](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.plot.html) about all the ways you can customize this type of chart. The latter allows for a lot more types of charts and graphs and information on that can be found in the tutorials on [the matplotlib website](https://matplotlib.org/tutorials/index.html).
+
+Let's start by looking at what we examined above: the number of 311 pings by complaint type. This is a lot of information to put on a chart, but is helpful for demonstration purposes.
+
+```Python
+ComplaintCount = df.groupby('ComplaintType')['UniqueKey'].count()
+ComplaintCount.plot(kind='bar', figsize=(25, 7))
+```
+Now, using the newly cleaned and formatted data, we can observe some trends in 311 pings in time. First, let's look at the number of 311 pings over time. Then, let's look at the aggregated number of 311 pings by day of the week.
+
+```Python
+# chart the number of 311 requests by the creation date over the whole period
+daily_pings = df_cleaner.groupby('CreatedDate_day')['UniqueKey'].count()
+# lets look at a quick summary of this data
+daily_pings.describe()
+# and now let's plot it
+daily_pings.plot(figsize=(15, 7), title='Number of Unique 311 Pings Each Day in 3 NYC Zip Codes')
+
+# chart the aggregated number of 311 requests by day of the week
+weekday_pings = df_cleaner.groupby('CreatedDate_dayname')['UniqueKey'].count()
+# lets look at a quick summary of this data
+weekday_pings.describe()
+# and now let's plot it
+weekday_pings.plot(kind='bar', figsize=(10, 7), title='Aggregated Number of Unique 311 Pings by Day of the Week in 3 NYC Zip Codes', stacked=True, colormap='Pastel2')
+```
+Now, try on your own to reorganize the order of the columns so that they are in order by day of the week! Hint, start by looking at [this post on Stack](https://stackoverflow.com/questions/22635110/sorting-the-order-of-bars-in-pandas-matplotlib-bar-plots).
+Lastly, we will combine some of the things we've learned above to group observations by the month in which they were called in, and chart them by month and agency to see which agencies receive the most 311 pings each month.
+
+```Python
+# create a new column with the number of the month only
+df_cleaner['CreatedDate_month'] = df_cleaner['CreatedDate_dt'].dt.month
+# create a new column with the name of the month only
+df_cleaner['CreatedDate_mo_name'] = df_cleaner['CreatedDate_dt'].dt.month_name()
+# check what we've made
+df_cleaner.head()
+
+# group the aggregated number of 311 requests by month of the year and Agency
+month_pings = df_cleaner.groupby(['CreatedDate_month', 'Agency'])['UniqueKey'].count().unstack('Agency').fillna(0)
+
+month_pings.head(20)
+
+#plot it!
+month_pings.plot(kind='bar', title='Aggregated Number of Unique 311 Pings by Agency per Month in 3 NYC Zip Codes', stacked=True, figsize=(15,10)).legend(bbox_to_anchor=(1.1, 1))
+```
+Now, try to flex your new skills by fixing the labels on the x-axis so they are month names (instead of numbers) and play around with formatting (e.g. colors, size, font size). Then try exporting the chart as a png!
