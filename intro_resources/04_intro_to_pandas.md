@@ -223,4 +223,168 @@ ComplaintCount[ComplaintCount == ComplaintCount.min()]
 
 ## Cleaning
 
-One of the most common tasks while working with big data is data cleaning. As we know all too well, datasets are inherently heterogeneous and unstructured. The lack of structure can cause functions to throw errors. We can clean data sets through various methods; if the discrepancies follow a structured pattern, it is possible to use built-in functions, or write our own functions. However, if the errors cannot be structured, we might have to do it manually!
+One of the most common tasks while working with big data is data cleaning. As we know all too well, datasets are inherently heterogeneous and unstructured, and full of errors and gaps. Each of these problems can cause functions to throw errors, and each inform what kinds of inferences we can reasonably draw from our data. We can clean data sets through various methods. It is helpful to start by cleaning discrepancies that follow a structured pattern, because then it is possible to use built-in functions. For less standard discrepancies that still follow some pattern, we can write our own functions. However, if the errors cannot be structured, we might have to do it manually...
+
+A common first step in cleaning is to check for duplicate rows and drop any duplicates. `.duplicated()` checks for rows that are entirely duplicated and returns a boolean, in which duplicates are marked with `True`.
+
+```python
+# in our dataset, there are no duplicates.
+df.duplicated()
+# if there were duplicates, we could easily run this like to drop all the duplicate rows.
+df.drop_duplicates()
+```
+You can get fancy with selecting which duplicate records you care about and which to drop and not drop. This is one of the powerful things about pandas. See [here](https://chrisalbon.com/python/data_wrangling/pandas_delete_duplicates/) and [here](https://medium.com/@kasiarachuta/dealing-with-duplicates-in-pandas-dataframe-789894a28911) for some common tips/tricks.
+
+Next, we check for any fields that are completely `NaN` (or null) and drop those. Having `Nan` or null fields can just clutter our dataset by making us keep track of fields that aren't going to be useful to us. It's a good habit to comment in code when you drop fields in case you want to go back later and see why those fields were dropped. To automatically drop any fields that are entirely blank, you can use the following statement:
+
+```python
+df.isnull().all()
+# in our dataset, there are no columns that are entirely blank. (This is because I already removed them when cutting this data out of the entire NYC 311 database, but I'm showing you here for reference!)
+```
+
+While we don't have any columns completely blank, there are probably many columns that we either don't care about for the purposes of our analysis or columns that have so few populated rows that they won't be useful for our analysis.
+
+There are many ways to get a sense of how many rows are blank in a given column. If you want to get a high-level sense of where there are gaps in your dataset, the python package, `missingno` [(and linked here on GitHub),](https://github.com/ResidentMario/missingno) is a neat way to visualize the gaps in your dataset.
+
+If you just want to check the count of null values in a single column, you can use this method:
+
+```python
+df['TaxiCompanyBorough'].isnull().sum()
+df['FerryTerminalName'].isnull().sum()
+```
+If you want to get a sense of what's missing across all the columns---which is helpful in our case because we have 52 columns---one way is to run a simple loop that prints the number of empty observations per field.
+
+```python
+# Remember, there are 7498 total rows in our dataset, so we want a count that is as close to zero and as far away from 7498 as possible.
+
+# first we rename each empty cell as 'NaN'
+df = df.fillna('NaN')
+# then we write a simple function that sums the number of observations in each column that are 'NaN'
+def missingcount(i):
+  return sum(i == 'NaN')
+#next, run these together to run the function
+print ("Number of observations with no value:")
+print (df.apply(missingcount, axis=0))
+#axis=0 defines that function is to be applied on each row
+```
+Here we see that many columns are entirely populated and some have a few hundred or even a few thousand missing values. But, we will start by dropping the columns that have more than 7000 missing observations. (***Note:*** If you don't know your data well, it is often a good idea to take a look at the observations that DO have values in the columns you're about to drop in case they can tell us something about the dataset. For example, here we can see that the columns with more than 7000 missing are car and ferry related, so by dropping these columns, we are likely dropping information relevant to the few observations that are car or ferry related.)
+
+So, let's drop the columns with more than 7000 missing observations. This is done by using the `.drop()` method and setting the results to be a new dataframe.  
+
+```Python
+df_clean = df.drop(['Landmark','VehicleType', 'TaxiCompanyBorough', 'TaxiPickUpLocation', 'BridgeHighwayName', 'BridgeHighwayDirection', 'RoadRamp', 'BridgeHighwaySegment', 'FerryTerminalName'], axis=1)
+# here we set axis=1 because we want this to run on each column
+#let's double check to see how many columns we just dropped
+np.shape(df_clean)
+# great! we just dropped 9 columns.
+
+# now, let's take a quick look at our data again.
+df_clean.head()
+```
+If you scroll over, you'll see that in some of the columns, 'Unspecified' seems to pop up a lot. Let's investigate this. 'Unspecified' doesn't tell us anything about the specific observation, so we may want to treat this like a null value. If there are some columns where a vast majority of the observations are 'Unspecified', we may want to drop those columns too.
+
+So, we'll run a similar loop to the one above (again, this is just one of many ways to do this) and count the number of observations with 'Unspecified' in each column.
+
+```Python
+# write a new function that counts the observations with 'Unspecified' in each column and print column names and counts
+def unspecified(x):
+  return sum(x == 'Unspecified')
+
+print ("Number of observations with unspecified:")
+print (df.apply(unspecified, axis=0)) #axis=0 tells the function to be applied on each row
+```
+Again, let's drop the columns with more than 7000 observations that are marked as 'Unspecified' using the same method as above.
+```Python
+# drop the columns that are all listed as unspecified
+df_cleaner = df_clean.drop(['ParkFacilityName', 'SchoolName', 'SchoolNumber', 'SchoolRegion', 'SchoolCode', 'SchoolPhoneNumber', 'SchoolAddress', 'SchoolCity', 'SchoolState', 'SchoolZip', 'SchoolNotFound'], axis=1)
+np.shape(df_cleaner)
+# great, now we are down to 32 columns which is more manageable than 52!
+```
+
+Another common and important step in cleaning is to make sure the dates and times are formatted correctly so that you can use them in your analysis.
+
+```python
+# let's look at our datatypes. we can see that there are some columns with 'Date' in the column name but the datatype is an object. This means that python and Pandas won't recognize these as dates.
+df_cleaner.dtypes
+```
+Since we only have 32 columns we can see easily that there are four columns with 'Date' in it:
++ 'CreatedDate'
++ 'ClosedDate'
++ 'DueDate'
++ 'ResolutionActionUpdatedDate'
+However, if we had many more columns and couldn't easily see this, we could use a regular expression (regex) to easily filter our columns for any that have the word, date, in them. Regex can be very powerful (and fast!) but we won't go into them here. To learn more about them and the specific syntax, see [here](https://docs.python.org/3.3/howto/regex.html#regex-howto) and [here](http://doc.pyschools.com/html/regex.html).
+
+```Python
+df_date = df_cleaner.filter(regex='Date')
+df_date
+```
+So, we'll need to convert our `date` column to a `datetime` type that Python can interpret using the Pandas `pd.to_datetime()` function. Let's start by just focusing on the 'CreatedDate' to show a few things that can be done. Then, you can try to turn these into functions for all the `date` columns on your own!
+
+We'll start by creating a new `CreatedDate_dt` column based on our `CreatedDate` column using the `.to_datetime()` method. To learn more about the many ways you can use `.to_datetime()` see [the pandas documentation](http://pandas.pydata.org/pandas-docs/stable/generated/pandas.to_datetime.html). We do this as follows:
+
+```python
+# check to make sure that there are no null values
+df_cleaner.CreatedDate.isnull().sum()
+# convert to datetime and put in a new column
+df_cleaner['CreatedDate_dt'] = pd.to_datetime(df_cleaner['CreatedDate'])
+#check the datatype to make sure it worked
+df_cleaner.dtypes
+
+# look at our oldest and newest entries, which is only possible now that we're in datetime format
+df_cleaner['CreatedDate_dt'].max()
+df_cleaner['CreatedDate_dt'].min()
+
+```
+Now, let's make a column that is just the date and not the time. This can be useful if we want to look at 311 pings within a given day. Let's also make a column that shows the day of the week and not just the date. This can help us tease out any trends in 311 pings by weekday. Fortunately, Pandas has some built-in functions to do these! We start by using `.dt.normalize()` to select out the date from the full datetime but keep the date in datetime format. Info on this can be [found here](http://pandas.pydata.org/pandas-docs/version/0.23/generated/pandas.Series.dt.normalize.html).
+
+Then, we use...
+
+```python
+# first, we make a new column that just includes the date
+df_cleaner['CreatedDate_day'] = df_cleaner['CreatedDate_dt'].dt.normalize()
+# and then look at it and make sure we still have a datetime datatype
+df_cleaner['CreatedDate_day'].head()
+
+#next, let's create a column for the name of the day of the week
+weekday = df_cleaner['CreatedDate_day'].dt.weekday
+weekday.head()
+weekdayname = df_cleaner['CreatedDate_dt'].dt.day_name
+pd.__version__
+```
+
+[REFERENCE]
+Once we've created a new column, we can create another column which uses an internal calendar to determine which day a given calendar date lands on. The one quirk here is that, by convention, the `weekday` function returns a numeric value according to a week that runs from 0 to 6 where 0 is Monday. Our 0 hour is midnight on Sunday, so we'll need to make our weekday number match our `hours` column. We do this using the `.apply() method`.
+
+```python
+df['weekday'] = df['date_new'].apply(lambda x: x.weekday() + 1)
+df['weekday'].replace(7, 0, inplace = True)
+```
+
+`lambda` sounds complicated, but really isn't. It allows us to define a function on the fly---here we're saying "do the following for every row: identify a weekday and add one to the returned value." This results in a range from 1-7 and we still want it to range from 0 to 6, so we replace 7 with 0 using the built-in Pandas `.replace` method.
+
+## Exporting your data
+The last step is to export your cleaned data so you can use it in other ways, or just to store it for your records. There are many formats that you can export data in from Pandas. See [here](https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.to_csv.html#pandas.DataFrame.to_csv) for the `to_csv` documentation and [here](https://pandas.pydata.org/pandas-docs/stable/api.html#id12) for information on all the formats that you can export with Pandas.  
+
+You'll notice that the statement below looks very similar to the way we read data into Pandas. Just like when we read data in, you may need to change Python's working directory so that your data is saved in the right folder. Here, we want to save it in the `data` folder.
+
+
+```python
+# export csv to your data folder
+os.chdir('intro_resources')
+df_cleaner.to_csv('data/NYC311_3zips_clean.csv')
+```
+
+
+## Looking at our data
+
+We can now create some basic charts using the fabulous matplotlib.
+
+```python
+# This line lets us plot in Atom
+import matplotlib
+# This line allows the results of plots to be displayed inline with our code.
+%matplotlib inline
+
+##day_hours = df[df['date'] == '2017-07-02'].groupby('hour')['count'].sum()
+##day_hours.plot()
+```
